@@ -1,9 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿#region
+
+using System;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
+
+#endregion
 
 namespace WndProcMutexNotificationWpf
 {
@@ -15,16 +17,18 @@ namespace WndProcMutexNotificationWpf
             const string semaphoreName = "WndProcMutexNotificationWpf";
 
             // Semaphoreクラスのインスタンスを生成し、アプリケーション終了まで保持する
-            using (new System.Threading.Semaphore(1, 1, semaphoreName,
+            using (new Semaphore(1, 1, semaphoreName,
                 out var createdNew))
             {
-                if (!createdNew) 
+                if (!createdNew)
                 {
                     // 他のプロセスが先にセマフォを作っていた
-                    foreach (var process in Process.GetProcesses().Where(p => p.ProcessName == Process.GetCurrentProcess().ProcessName))
+                    foreach (var process in Process.GetProcesses()
+                        .Where(p => p.ProcessName == Process.GetCurrentProcess().ProcessName))
                     {
                         WndProcManager.SendMessage(process.MainWindowHandle);
                     }
+
                     return; // プログラム終了
                 }
 
@@ -32,7 +36,6 @@ namespace WndProcMutexNotificationWpf
                 App app = new App {StartupUri = new Uri("MainWindow.xaml", UriKind.Relative)};
                 app.InitializeComponent();
                 app.Run();
-
             } // Semaphoreクラスのインスタンスを破棄
         }
     }
